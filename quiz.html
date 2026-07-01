@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:400,700" rel="stylesheet">
+<link href='style.css' rel='stylesheet' type='text/css'>
+<title>FactionValues Quiz</title>
+<link rel="icon" type="x-icon" href="https://raw.githubusercontent.com/thawdabase/FactionValues/master/favicon.png">
+<link rel="shortcut icon" type="x-icon" href="icon.png">
+<meta charset="utf-8">
+<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<script>
+  (adsbygoogle = window.adsbygoogle || []).push({
+    google_ad_client: "ca-pub-6511426299019766",
+    enable_page_level_ads: true
+  });
+</script>
+</head>
+<body>
+<script type="application/javascript"
+        src="questions.js">
+</script>
+<h1>FactionValues</h1>
+<hr>
+<h2 style="text-align:center;" id="question-number">Loading...</h2>
+<p class="question" id="question-text"></p>
+<button class="button stronglyAgree" onclick="next_question( 1.0)">Strongly Agree</button> <br>
+<button class="button agree" onclick="next_question( 0.5)">Agree</button> <br>
+<button class="button neutral" onclick="next_question( 0.0)">Neutral/Unsure</button> <br>
+<button class="button disagree" onclick="next_question(-0.5)">Disagree</button> <br>
+<button class="button stronglyDisagree" onclick="next_question(-1.0)">Strongly Disagree</button> <br>
+<button class="small_button" onclick="prev_question()" id="back_button">Back</button>
+<button class="small_button_off" id="back_button_off">Back</button><br>
+
+<!-- Website visit statistics - no personal information is collected! -->
+<script type="text/javascript">
+var sc_project=11325211;
+var sc_invisible=1;
+var sc_security="fd9f0659";
+var scJsHost = (("https:" == document.location.protocol) ?
+"https://secure." : "http://www.");
+document.write("<sc"+"ript type='text/javascript' src='" +
+scJsHost+
+"statcounter.com/counter/counter.js'></"+"script>");
+</script>
+<noscript><div class="statcounter"><a title="web stats"
+href="http://statcounter.com/" target="_blank"><img
+class="statcounter"
+src="//c.statcounter.com/11325211/0/fd9f0659/1/" alt="web
+stats"></a></div></noscript>
+
+<!-- JavaScript for the test itself -->
+<!-- Fully generic: axis keys are read from questions[0].effect, so adding/removing/renaming
+     axes only ever requires editing questions.js (and the AXES config in results.html). -->
+<script>
+    var axisKeys = Object.keys(questions[0].effect); // e.g. ["ground","intel","aid","enforce","manage","energy","prole"]
+    var maxScore = {}; // Max possible score per axis
+    axisKeys.forEach(function(k) { maxScore[k] = 0; });
+
+    let answerArrays = {}; // one array of per-question weighted effects, per axis
+    axisKeys.forEach(function(k) { answerArrays[k] = new Array(questions.length); });
+
+    var qn = 0; // Question number
+    init_question();
+
+    for (var i = 0; i < questions.length; i++) {
+        axisKeys.forEach(function(k) {
+            maxScore[k] += Math.abs(questions[i].effect[k] || 0);
+        });
+    }
+
+    function init_question() {
+        document.getElementById("question-text").innerHTML = questions[qn].question;
+        document.getElementById("question-number").innerHTML = "Question " + (qn + 1) + " of " + (questions.length);
+        if (qn == 0) {
+            document.getElementById("back_button").style.display = 'none';
+            document.getElementById("back_button_off").style.display = 'block';
+        } else {
+            document.getElementById("back_button").style.display = 'block';
+            document.getElementById("back_button_off").style.display = 'none';
+        }
+    }
+
+    function next_question(mult) {
+        axisKeys.forEach(function(k) {
+            answerArrays[k][qn] = mult * (questions[qn].effect[k] || 0);
+        });
+        qn++;
+        if (qn < questions.length) {
+            init_question();
+        } else {
+            results();
+        }
+    }
+
+    function prev_question() {
+        if (qn == 0) {
+            return;
+        }
+        qn--;
+        init_question();
+    }
+
+    function calc_score(score, max) {
+        if (max == 0) { return "50.0"; } // axis with no weighted questions defaults to neutral
+        return (100 * (max + score) / (2 * max)).toFixed(1)
+    }
+
+    function results() {
+        var params = axisKeys.map(function(k) {
+            let total = answerArrays[k].reduce((a, b) => a + b, 0);
+            return k + "=" + calc_score(total, maxScore[k]);
+        });
+        location.href = "results.html?" + params.join("&");
+    }
+</script>
+</body>
+</html>

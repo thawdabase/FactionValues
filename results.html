@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:400,700" rel="stylesheet">
+<link href='style.css' rel='stylesheet' type='text/css'>
+<title>FactionValues | Results</title>
+<link rel="icon" type="x-icon" href="https://raw.githubusercontent.com/thawdabase/FactionValues/master/favicon.png">
+<link rel="shortcut icon" type="x-icon" href="https://raw.githubusercontent.com/thawdabase/FactionValues/master/favicon.png">
+<meta charset="utf-8">
+<script>
+  version = "Test Edition #1" //Remember to update this before making changes to the test itself!
+</script>
+</head>
+<body>
+<script type="application/javascript" src="ideologies.js"></script>
+<h1>FactionValues</h1>
+<hr>
+
+<h1>Results</h1>
+
+<div id="axes-container"></div>
+
+<h2>Closest Match: <span class="weight-300" id="ideology-label"></span></h2>
+<p>Faction matching is a work in progress, and is much less accurate than the values and axes.</p>
+<p> </p>
+<hr/>
+<img src="" id="banner">
+<button class="button" onclick="location.href='index.html';">Back</button> <br>
+<!-- Website visit statistics - no personal information is collected! -->
+<script type="text/javascript">
+var sc_project=11325211;
+var sc_invisible=1;
+var sc_security="fd9f0659";
+var scJsHost = (("https:" == document.location.protocol) ?
+"https://secure." : "http://www.");
+document.write("<sc"+"ript type='text/javascript' src='" +
+scJsHost+
+"statcounter.com/counter/counter.js'></"+"script>");
+</script>
+<noscript><div class="statcounter"><a title="web stats"
+href="http://statcounter.com/" target="_blank"><img
+class="statcounter"
+src="//c.statcounter.com/11325211/0/fd9f0659/1/" alt="web
+stats"></a></div></noscript>
+<script>
+    // ---- Axis configuration -------------------------------------------------
+    // Single source of truth for how each of the 7 axes is displayed: title,
+    // pole names/colors/icons, and the element ids used for the bars & labels.
+    // The "key" here MUST match the axis key used in questions.js / ideologies.js.
+    // Swap in real icon files under value-images/ whenever you're ready.
+    var AXES = [
+        {
+            key: "ground", title: "Ground",
+            leftKey: "insurrection", rightKey: "coup",
+            leftLabel: "Insurrection", rightLabel: "Coup D'\u00c9tat",
+            leftColor: "#d32f2f", rightColor: "#00796b",
+            leftImg: "value-images/insurrection.png", rightImg: "value-images/coup.png"
+        },
+        {
+            key: "intel", title: "Intelligence",
+            leftKey: "domestic", rightKey: "foreign",
+            leftLabel: "Domestic", rightLabel: "Foreign",
+            leftColor: "#f57c00", rightColor: "#0288d1",
+            leftImg: "value-images/domestic.png", rightImg: "value-images/foreign.png"
+        },
+        {
+            key: "aid", title: "Aid",
+            leftKey: "mutualaid", rightKey: "stateaid",
+            leftLabel: "Mutual Aid", rightLabel: "State Aid",
+            leftColor: "#fbc02d", rightColor: "#303f9f",
+            leftImg: "value-images/mutual-aid.png", rightImg: "value-images/state-aid.png"
+        },
+        {
+            key: "enforce", title: "Enforcement",
+            leftKey: "restorative", rightKey: "punitive",
+            leftLabel: "Restorative", rightLabel: "Punitive",
+            leftColor: "#6d4c41", rightColor: "#455a64",
+            leftImg: "value-images/restorative.png", rightImg: "value-images/punitive.png"
+        },
+        {
+            key: "manage", title: "Management",
+            leftKey: "decentralized", rightKey: "centralized",
+            leftLabel: "Decentralized", rightLabel: "Centralized",
+            leftColor: "#7b1fa2", rightColor: "#388e3c",
+            leftImg: "value-images/decentralized.png", rightImg: "value-images/centralized.png"
+        },
+        {
+            key: "energy", title: "Energy",
+            leftKey: "renewable", rightKey: "extractive",
+            leftLabel: "Renewable", rightLabel: "Extractive",
+            leftColor: "#43a047", rightColor: "#f4511e",
+            leftImg: "value-images/renewable.png", rightImg: "value-images/extractive.png"
+        },
+        {
+            key: "prole", title: "Proletariat",
+            leftKey: "labor", rightKey: "capital",
+            leftLabel: "Labor", rightLabel: "Capital",
+            leftColor: "#c2185b", rightColor: "#1565c0",
+            leftImg: "value-images/labor.png", rightImg: "value-images/capital.png"
+        }
+    ];
+
+    function getQueryVariable(variable) {
+        var query = window.location.search.substring(1)
+        var vars = query.split("&")
+        for (var i = 0; i < vars.length; i++) {
+            var pair = vars[i].split("=")
+            if (pair[0] == variable) { return pair[1] }
+        }
+        return (NaN);
+    }
+
+    function setBarValue(name, value) {
+        innerel = document.getElementById(name)
+        outerel = document.getElementById("bar-" + name)
+        outerel.style.width = (value + "%")
+        innerel.innerHTML = (value + "%")
+        if (innerel.offsetWidth + 20 > outerel.offsetWidth) {
+            innerel.style.visibility = "hidden"
+        }
+    }
+
+    // 7-step label buckets are generated automatically from each axis's pole names,
+    // so you only ever need to edit leftLabel/rightLabel above to change wording.
+    function bucketsFor(axis) {
+        return [
+            "Very " + axis.leftLabel,
+            axis.leftLabel,
+            "Lean " + axis.leftLabel,
+            "Balanced",
+            "Lean " + axis.rightLabel,
+            axis.rightLabel,
+            "Very " + axis.rightLabel
+        ];
+    }
+
+    function setLabel(val, ary) {
+        if (val > 100) { return "" } else
+        if (val > 90) { return ary[0] } else
+        if (val > 75) { return ary[1] } else
+        if (val > 60) { return ary[2] } else
+        if (val >= 40) { return ary[3] } else
+        if (val >= 25) { return ary[4] } else
+        if (val >= 10) { return ary[5] } else
+        if (val >= 0) { return ary[6] } else
+        { return "" }
+    }
+
+    // ---- Build the axis scores from the URL & render the page ---------------
+    var scores = {}; // scores[key] = left-pole score (0-100), right pole = 100-score
+    AXES.forEach(function (axis) {
+        var left = parseFloat(getQueryVariable(axis.key));
+        if (isNaN(left)) { left = 50; } // default to neutral if a param is missing
+        var right = (100 - left).toFixed(1);
+        scores[axis.key] = { left: left.toFixed(1), right: right };
+    });
+
+    var container = document.getElementById("axes-container");
+    AXES.forEach(function (axis) {
+        var section = document.createElement("div");
+
+        var h2 = document.createElement("h2");
+        h2.innerHTML = axis.title + " Axis: <span class=\"weight-300\" id=\"" + axis.key + "-label\"></span>";
+        section.appendChild(h2);
+
+        var axisDiv = document.createElement("div");
+        axisDiv.className = "axis";
+
+        var imgLeft = document.createElement("img");
+        imgLeft.id = "img-" + axis.leftKey;
+        imgLeft.src = axis.leftImg;
+        imgLeft.height = "64";
+
+        var barLeft = document.createElement("div");
+        barLeft.className = "bar";
+        barLeft.id = "bar-" + axis.leftKey;
+        barLeft.style.backgroundColor = axis.leftColor;
+        barLeft.style.textAlign = "left";
+        var textLeft = document.createElement("div");
+        textLeft.className = "text-wrapper";
+        textLeft.id = axis.leftKey;
+        barLeft.appendChild(textLeft);
+
+        var barRight = document.createElement("div");
+        barRight.className = "bar";
+        barRight.id = "bar-" + axis.rightKey;
+        barRight.style.backgroundColor = axis.rightColor;
+        barRight.style.textAlign = "right";
+        var textRight = document.createElement("div");
+        textRight.className = "text-wrapper";
+        textRight.id = axis.rightKey;
+        barRight.appendChild(textRight);
+
+        var imgRight = document.createElement("img");
+        imgRight.id = "img-" + axis.rightKey;
+        imgRight.src = axis.rightImg;
+        imgRight.height = "64";
+
+        axisDiv.appendChild(imgLeft);
+        axisDiv.appendChild(barLeft);
+        axisDiv.appendChild(barRight);
+        axisDiv.appendChild(imgRight);
+        section.appendChild(axisDiv);
+
+        container.appendChild(section);
+    });
+
+    AXES.forEach(function (axis) {
+        setBarValue(axis.leftKey, scores[axis.key].left);
+        setBarValue(axis.rightKey, scores[axis.key].right);
+        document.getElementById(axis.key + "-label").innerHTML = setLabel(scores[axis.key].left, bucketsFor(axis));
+    });
+
+    // ---- Closest faction/ideology match --------------------------------------
+    ideology = ""
+    ideodist = Infinity
+    for (var i = 0; i < ideologies.length; i++) {
+        dist = 0
+        AXES.forEach(function (axis) {
+            dist += Math.pow(Math.abs(ideologies[i].stats[axis.key] - scores[axis.key].left), 2)
+        });
+        if (dist < ideodist) {
+            ideology = ideologies[i].name
+            ideodist = dist
+        }
+    }
+    document.getElementById("ideology-label").innerHTML = ideology
+
+    // ---- Shareable banner image ------------------------------------------------
+    window.onload = function () {
+        var rowHeight = 100;
+        var topMargin = 170;
+        var c = document.createElement("canvas")
+        var ctx = c.getContext("2d")
+        c.width = 800;
+        c.height = topMargin + AXES.length * rowHeight + 40;
+        ctx.fillStyle = "#EEEEEE"
+        ctx.fillRect(0, 0, c.width, c.height);
+
+        AXES.forEach(function (axis, i) {
+            var y = topMargin + i * rowHeight;
+            var left = parseFloat(scores[axis.key].left);
+            var right = parseFloat(scores[axis.key].right);
+
+            var imgL = document.getElementById("img-" + axis.leftKey);
+            var imgR = document.getElementById("img-" + axis.rightKey);
+            ctx.drawImage(imgL, 20, y - 10, 80, 80);
+            ctx.drawImage(imgR, 700, y - 10, 80, 80);
+
+            ctx.fillStyle = "#222222"
+            ctx.fillRect(110, y - 6, 580, 64)
+
+            ctx.fillStyle = axis.leftColor
+            ctx.fillRect(112, y - 4, Math.max(0, 5.76 * left - 2), 60)
+            ctx.fillStyle = axis.rightColor
+            ctx.fillRect(688 - 5.76 * right, y - 4, Math.max(0, 5.76 * right - 2), 60)
+
+            ctx.fillStyle = "#222222"
+            ctx.font = "300 24px Montserrat"
+            ctx.textAlign = "center"
+            ctx.fillText(axis.title + " Axis: " + document.getElementById(axis.key + "-label").innerHTML, 400, y - 12)
+
+            ctx.font = "26px Montserrat"
+            ctx.textAlign = "left"
+            if (left > 30) { ctx.fillText(left + "%", 118, y + 32) }
+            ctx.textAlign = "right"
+            if (right > 30) { ctx.fillText(right + "%", 682, y + 32) }
+        });
+
+        ctx.fillStyle = "#222222"
+        ctx.textAlign = "left"
+        ctx.font = "700 60px Montserrat"
+        ctx.fillText("FactionValues", 20, 70)
+        ctx.font = "34px Montserrat"
+        ctx.fillText(ideology, 20, 115)
+
+        ctx.font = "300 22px Montserrat"
+        ctx.textAlign = "right"
+        ctx.fillText("factionvalues.github.io", 780, 40)
+        ctx.fillText(version, 780, 65)
+
+        document.getElementById("banner").src = c.toDataURL();
+    }
+</script>
+</body>
+</html>
